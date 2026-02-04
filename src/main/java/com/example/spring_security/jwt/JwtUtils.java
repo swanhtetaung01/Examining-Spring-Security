@@ -19,24 +19,25 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger("JwtUtils.class");
 
     @Value("${spring.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    @Value("${spring.app.jwtSecret}")
-    private String jwtSecret;
+    @Value("${spring.app.jwtSecretKey}")
+    private String jwtSecretKey;
 
+    //Getting the JWT token from header
     public String getJwtFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         logger.debug("Authorization Header: {}", bearerToken);
-        if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
+        if(bearerToken != null && bearerToken.startsWith("Bearer "))
             return bearerToken.substring(7);
-        }
         return null;
     }
 
-    public String generateTokenFromUsername(UserDetails userDetails) {
+    //Getting JWT token from username
+    public String generateJwtTokenFromUsername(UserDetails userDetails) {
         String username = userDetails.getUsername();
         return Jwts.builder()
                 .issuedAt(new Date())
@@ -45,33 +46,37 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String getUsernameFromJwtToken(String token) {
-        return Jwts.parser()
-                .verifyWith(key())
-                .build().parseSignedClaims(token)
-                .getPayload().getSubject();
+    //Getting username from JWT token
+    public  String generateUsernameFromJwtToken(String jwtToken) {
+       return Jwts.parser()
+               .verifyWith(key())
+               .build().parseSignedClaims(jwtToken)
+               .getPayload().getSubject();
     }
 
     public SecretKey key() {
         return Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(jwtSecret)
+                Decoders.BASE64.decode(jwtSecretKey)
         );
     }
 
+    //Validating JWT token
     public boolean validateJwtToken(String authToken) {
         try{
             System.out.println("Validate");
-            Jwts.parser()
-                    .verifyWith(key())
-                    .build().parseSignedClaims(authToken);
+            Jwts.parser().verifyWith(key()).build().parseSignedClaims(authToken);
             return true;
-        }catch(MalformedJwtException e) {
+        }
+        catch(MalformedJwtException e) {
             logger.error("Invalid JWT token: {}", e.getMessage());
-        }catch(ExpiredJwtException e) {
+        }
+        catch(ExpiredJwtException e) {
             logger.error("JWT token is expired: {}", e.getMessage());
-        }catch(UnsupportedJwtException e) {
+        }
+        catch(UnsupportedJwtException e) {
             logger.error("JWT token is unsupported: {}", e.getMessage());
-        }catch(IllegalArgumentException e) {
+        }
+        catch(IllegalArgumentException e) {
             logger.error("JWT claims string is empty: {}", e.getMessage());
         }
         return false;

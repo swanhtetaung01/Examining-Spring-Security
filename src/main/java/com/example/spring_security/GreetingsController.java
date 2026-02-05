@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 
 @RestController
 public class GreetingsController {
-    
+
+    @Autowired
     private AuthenticationManager authenticationManager;
 
     @Autowired
@@ -51,16 +52,16 @@ public class GreetingsController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         Authentication authentication;
-        try{
+        try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
                             loginRequest.getPassword()
                     )
             );
-        }catch(AuthenticationException exception) {
+        } catch (AuthenticationException exception) {
             Map<String, Object> map = new HashMap<>();
             map.put("message", "Bad credentials");
             map.put("status", false);
@@ -75,5 +76,5 @@ public class GreetingsController {
         LoginResponse loginResponse = new LoginResponse(jwtToken, roles, userDetails.getUsername());
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
-    
+
 }

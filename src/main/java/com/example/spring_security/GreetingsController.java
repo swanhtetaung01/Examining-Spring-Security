@@ -2,6 +2,7 @@ package com.example.spring_security;
 
 import com.example.spring_security.jwt.JwtUtils;
 import com.example.spring_security.jwt.LoginRequest;
+import com.example.spring_security.jwt.LoginResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +26,8 @@ import java.util.stream.Collectors;
 
 @RestController
 public class GreetingsController {
-
-    @Autowired
+    
     private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UserDetailsManager userDetailsManager;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -75,6 +72,8 @@ public class GreetingsController {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
+        LoginResponse loginResponse = new LoginResponse(jwtToken, roles, userDetails.getUsername());
+        return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
     
 }
